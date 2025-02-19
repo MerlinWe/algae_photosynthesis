@@ -108,7 +108,7 @@ dat %>%
 temperature_labels <- c("control" = "21 °C", "warm" = "26 °C", "hot" = "30 °C")
 p1 <- ggplot(dat, aes(x = Temp_cat, y = netPhotosynthesis, color = Species)) +
 	geom_point(alpha = 0.4, position = position_jitter(width = 0.2, height = 0)) + 
-	geom_smooth(aes(group = Species), method = "loess", se = FALSE) +   # Ensures separate fit lines per species
+	geom_smooth(aes(group = Species), method = "loess", se = FALSE) + 
 	scale_x_discrete(labels = temperature_labels) +
 	scale_colour_manual(values = c("sienna", "darkgreen", "red")) +
 	labs(x = "Temperature (°C)", y = "Net Photosynthesis (µmol O2 cm² h⁻¹)", title = "Main effect of temperature") +
@@ -121,7 +121,7 @@ p1 <- ggplot(dat, aes(x = Temp_cat, y = netPhotosynthesis, color = Species)) +
 
 p2 <- ggplot(dat, aes(x = Light, y = netPhotosynthesis, color = Species)) +
 	geom_point(alpha = 0.4, position = position_jitter(width = 0.2, height = 0)) + 
-	geom_smooth(aes(group = Species), method = "loess", se = FALSE) +   # Ensures separate fit lines per species
+	geom_smooth(aes(group = Species), method = "loess", se = FALSE) +   
 	scale_colour_manual(values = c("sienna", "darkgreen", "red")) +
 	labs(x = "Light intensity", y = NULL, title = "Main effect of light") +
 	theme_few() +
