@@ -1,1 +1,13 @@
 *.csv
+.gitattributes
+.Rhistory
+manuscript/.DS_Store
+manuscript/fig1.png
+manuscript/fig2.png
+manuscript/fig3.png
+manuscript/model_estimates.docx
+manuscript/PaperGiglio_19.02.25.docx
+old/.DS_Store
+old/Abstract2_PaperGiglio_Leonie_comments_MWE.docx
+old/AGPräsiFinal.pdf
+old/Manuscript_StressTest_MM.docx
