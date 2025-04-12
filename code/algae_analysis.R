@@ -114,9 +114,9 @@ p1 <- ggplot(dat, aes(x = Temp_cat, y = netPhotosynthesis, color = Species)) +
 	labs(x = "Temperature (°C)", y = "Net Photosynthesis (µmol O2 cm² h⁻¹)", title = "Main effect of temperature") +
 	theme_few() +
 	theme(
-		text = element_text(size = 12, family = "Palatino"),
-		strip.text = element_text(size = 14, face = "bold"),
-		plot.title =  element_text(size = 14, face = "bold"),
+		text = element_text(size = 12, family = "Sans"),
+		strip.text = element_text(size = 12, face = "bold"),
+		plot.title =  element_text(size = 12, face = "bold"),
 		legend.position = "none")
 
 p2 <- ggplot(dat, aes(x = Light, y = netPhotosynthesis, color = Species)) +
@@ -126,24 +126,25 @@ p2 <- ggplot(dat, aes(x = Light, y = netPhotosynthesis, color = Species)) +
 	labs(x = "Light intensity", y = NULL, title = "Main effect of light") +
 	theme_few() +
 	theme(
-		text = element_text(size = 12, family = "Palatino"),
-		strip.text = element_text(size = 14, face = "bold"),
-		plot.title =  element_text(size = 14, face = "bold"),
+		text = element_text(size = 12, family = "Sans"),
+		strip.text = element_text(size = 12, face = "bold"),
+		plot.title =  element_text(size = 12, face = "bold"),
 		legend.position = "none")
 
 p3 <- ggplot(dat, aes(x = Temperature, y = netPhotosynthesis, color = Species, group = Species)) +
 	geom_point(alpha = 0.4, position = position_jitter(width = 0.2, height = 0)) + 
 	geom_smooth(method = "loess", se = FALSE, linewidth = 1.2) +  
 	facet_wrap(~ Light) +  
-	scale_colour_manual(values = c("sienna", "darkgreen", "red")) +	labs(
+	scale_colour_manual(values = c("sienna", "darkgreen", "red")) +	
+	labs(
 		x = "Temperature (°C)",
 		y = "Net Photosynthesis (µmol O2 cm² h⁻¹)",
-		title = "Temperature x Light Interaction"
-	) +
+		title = "Temperature x Light Interaction",
+		color = NULL) +
 	theme_few() + 
-	theme(text = element_text(size = 12, family = "Palatino"), 
-				plot.title =  element_text(size = 14, face = "bold"),
-		strip.text = element_text(size = 14), 
+	theme(text = element_text(size = 12, family = "Sans"), 
+				plot.title =  element_text(size = 12, face = "bold"),
+		strip.text = element_text(size = 12), 
 		legend.position = "bottom")
 
 plot_desc <- plot_grid(plot_grid(p1, p2, rel_widths = c(.54, .5)), 
@@ -153,7 +154,7 @@ ggsave(filename = "/Users/serpent/Desktop/desc_plot.png",
 			 plot = plot_desc, 
 			 bg = "transparent",
 			 width = 290, 
-			 height = 190, 
+			 height = 220, 
 			 units = "mm", 
 			 dpi = 800)
 
@@ -238,8 +239,8 @@ emm_plot <- ggplot(emm_df, aes(x = Species, y = emmean, fill = Species)) +
 	theme_few() +
 		
 	theme(
-		text = element_text(size = 12, family = "Palatino"),
-		strip.text = element_text(size = 14, face = "bold"),
+		text = element_text(size = 12, family = "Sans"),
+		strip.text = element_text(size = 12, face = "bold"),
 		legend.position = "none")
 
 ggsave(filename = "/Users/serpent/Desktop/emm_factorial_plot.png",
@@ -354,16 +355,15 @@ pr_plot <- emm_pr %>%
 	labs(
 		x = NULL,
 		y = NULL) +
-	theme_few(base_size = 14, base_family = "Palatino") + 
+	theme_few(base_size = 14, base_family = "Sans") + 
 	theme(
-		text = element_text(size = 14),
-		strip.text = element_text(size = 14, face = "bold"), 
+		text = element_text(size = 12),
+		strip.text = element_text(size = 12, face = "bold"), 
 		legend.position = "right",
 		axis.text.x = element_text(size = 12, angle = 30, hjust = 1),
 		axis.text.y = element_text(size = 12),
-		plot.title = element_text(size = 16, face = "bold", hjust = 0.5))
+		plot.title = element_text(size = 14, face = "bold", hjust = 0.5))
 
-pr_plot
 ggsave(filename = "/Users/serpent/Desktop/pr_plot.png",
 			 plot = pr_plot, 
 			 bg = "transparent",
