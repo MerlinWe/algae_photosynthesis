@@ -54,7 +54,20 @@ dat <- algae %>%
 		Light = factor(Light, levels = c("control", "medium", "high")),
 		Temp_cat = factor(Temp_cat, levels = c("control", "warm", "hot"))) %>%
 	
-	mutate(PR_ratio = grossPhotosynthesis / abs(Respiration)) # fix pr ratio
+	mutate(PR_ratio = grossPhotosynthesis / abs(Respiration)) %>% # fix pr ratio
+	
+	# Also; transform photosynthesis and respiration units from µmol O2 cm² h⁻¹ to nmol O2 m² s⁻¹ 
+	
+	# Convert from µmol O₂ cm⁻² h⁻¹ to nmol O₂ m⁻² s⁻¹:
+	# Multiply by 1,000 to convert µmol to nmol,
+	# Multiply by 10,000 to convert cm² to m²,
+	# Divide by 3,600 to convert hours to seconds.
+	# Total conversion factor = 1,000 × 10,000 ÷ 3,600 ≈ 2,777.78
+	
+	dplyr::mutate(
+		netPhotosynthesis = netPhotosynthesis * 1e3 * 1e4 / 3600,
+		grossPhotosynthesis = grossPhotosynthesis * 1e3 * 1e4 / 3600,
+		Respiration = Respiration * 1e3 * 1e4 / 3600)
 
 
 # Linearity? Can we treat temperature & light as continues variable? 
@@ -75,11 +88,11 @@ dat %>% ggplot(aes(x = Temperature, y = PR_ratio, color = Species)) +
 
 dat %>% 
 	mutate(Light = case_when(
-			Light == "control" ~ "1",
-			Light ==  "medium" ~ "2",
-			Light == "high"    ~ "3",
-			TRUE ~ "NA"),
-			Light = as.numeric(Light)) %>%
+		Light == "control" ~ "1",
+		Light ==  "medium" ~ "2",
+		Light == "high"    ~ "3",
+		TRUE ~ "NA"),
+		Light = as.numeric(Light)) %>%
 	ggplot(aes(x = Light, y = netPhotosynthesis, color = Species)) +
 	geom_point(alpha = .5) +
 	geom_smooth(method = "lm", formula = y ~ x, se = FALSE) +  # Linear fit
@@ -111,10 +124,10 @@ p1 <- ggplot(dat, aes(x = Temp_cat, y = netPhotosynthesis, color = Species)) +
 	geom_smooth(aes(group = Species), method = "loess", se = FALSE) + 
 	scale_x_discrete(labels = temperature_labels) +
 	scale_colour_manual(values = c("sienna", "darkgreen", "red")) +
-	labs(x = "Temperature (°C)", y = "Net Photosynthesis (µmol O2 cm² h⁻¹)", title = "Main effect of temperature") +
+	labs(x = "Temperature (°C)", y = "Net Photosynthesis (nmol O₂ m⁻² s⁻¹)", title = "Main effect of temperature") +
 	theme_few() +
 	theme(
-		text = element_text(size = 12, family = "Sans"),
+		text = element_text(size = 12, family = "sans"),
 		strip.text = element_text(size = 12, face = "bold"),
 		plot.title =  element_text(size = 12, face = "bold"),
 		legend.position = "none")
@@ -126,7 +139,7 @@ p2 <- ggplot(dat, aes(x = Light, y = netPhotosynthesis, color = Species)) +
 	labs(x = "Light intensity", y = NULL, title = "Main effect of light") +
 	theme_few() +
 	theme(
-		text = element_text(size = 12, family = "Sans"),
+		text = element_text(size = 12, family = "sans"),
 		strip.text = element_text(size = 12, face = "bold"),
 		plot.title =  element_text(size = 12, face = "bold"),
 		legend.position = "none")
@@ -138,18 +151,19 @@ p3 <- ggplot(dat, aes(x = Temperature, y = netPhotosynthesis, color = Species, g
 	scale_colour_manual(values = c("sienna", "darkgreen", "red")) +	
 	labs(
 		x = "Temperature (°C)",
-		y = "Net Photosynthesis (µmol O2 cm² h⁻¹)",
+		y = "Net Photosynthesis nmol O₂ m⁻² s⁻¹)",
 		title = "Temperature x Light Interaction",
 		color = NULL) +
 	theme_few() + 
-	theme(text = element_text(size = 12, family = "Sans"), 
+	theme(text = element_text(size = 12, family = "sans"), 
 				plot.title =  element_text(size = 12, face = "bold"),
-		strip.text = element_text(size = 12), 
-		legend.position = "bottom")
+				strip.text = element_text(size = 12), 
+				legend.position = "bottom")
 
 plot_desc <- plot_grid(plot_grid(p1, p2, rel_widths = c(.54, .5)), 
 											 p3, ncol = 1, nrow = 2,
 											 rel_heights = c(.4, .6))
+
 ggsave(filename = "/Users/serpent/Desktop/desc_plot.png",
 			 plot = plot_desc, 
 			 bg = "transparent",
@@ -179,6 +193,7 @@ anova(mod3)
 summary(mod3)
 par(mfrow=c(2,2))
 plot(mod3) # not too bad 
+dev.off()
 hist(mod3$residuals)
 
 # do a backwards stepwise selection
@@ -189,10 +204,11 @@ summary(mod_final)
 summary(mod_final)
 AIC(mod_final)
 
+
+par(mfrow=c(1,2))
 plot(fitted(mod_final), residuals(mod_final),
 		 xlab = "Fitted Values", ylab = "Residuals")
 abline(h = 0, col = "red", lty = 2)
-
 qqnorm(residuals(mod_final))
 qqline(residuals(mod_final), col = "red")
 
@@ -234,12 +250,12 @@ emm_plot <- ggplot(emm_df, aes(x = Species, y = emmean, fill = Species)) +
 	
 	labs(
 		x = NULL,
-		y = "Net Photosynthesis (µmol O2 cm² h⁻¹)") +
-		
+		y = "Net Photosynthesis (nmol O₂ m⁻² s⁻¹)") +
+	
 	theme_few() +
-		
+	
 	theme(
-		text = element_text(size = 12, family = "Sans"),
+		text = element_text(size = 12, family = "sans"),
 		strip.text = element_text(size = 12, face = "bold"),
 		legend.position = "none")
 
@@ -308,7 +324,7 @@ hist(mod3$residuals)
 # maybe try gamma 
 
 mod_4 <- glm(PR_ratio ~ Temp_cat * Light * Species, 
-							 family = Gamma(link = "log"), data = dat)
+						 family = Gamma(link = "log"), data = dat)
 
 anova(mod_4)
 summary(mod_4)
@@ -326,7 +342,7 @@ summary(mod_final) # same as before
 
 # this is the top model 
 mod_pr <- glm(PR_ratio ~ Temp_cat * Light * Species, 
-						 family = Gamma(link = "log"), data = dat)
+							family = Gamma(link = "log"), data = dat)
 
 
 # estimate marginal means 
@@ -355,7 +371,7 @@ pr_plot <- emm_pr %>%
 	labs(
 		x = NULL,
 		y = NULL) +
-	theme_few(base_size = 14, base_family = "Sans") + 
+	theme_few(base_size = 14, base_family = "sans") + 
 	theme(
 		text = element_text(size = 12),
 		strip.text = element_text(size = 12, face = "bold"), 
