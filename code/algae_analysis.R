@@ -2,7 +2,7 @@
 ######################### Temperature and Light Stress on Mediterranean Macro Algae ###########################
 ###############################################################################################################
 
-rm(list = ls()); dev.off() # make sure environment is clean 
+rm(list = ls()) # make sure environment is clean 
 options(scipen = 999, digits = 4) 
 
 library(cowplot)     
