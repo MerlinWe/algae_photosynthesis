@@ -21,7 +21,7 @@ library(multcomp)
 library(ggthemes)   
 library(tidyverse)  
 
-setwd("/Users/serpent/Documents/Projects/Giglio/") # set WD 
+setwd("/Users/merlin/Documents/Projects/Giglio") # set WD 
 export = TRUE # export?  
 
 algae <- read_csv(file.path("code", "giglio_algae.csv"))
