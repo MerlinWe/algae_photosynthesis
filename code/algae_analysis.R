@@ -21,7 +21,7 @@ library(multcomp)
 library(ggthemes)   
 library(tidyverse)  
 
-setwd("/Users/merlin/Documents/Projects/Giglio") # set WD 
+setwd("/Users/serpent/Documents/Projects/Giglio") # set WD 
 export = TRUE # export?  
 
 algae <- read_csv(file.path("code", "giglio_algae.csv"))
@@ -175,11 +175,35 @@ model_table <- flextable(model_results) %>%
 	set_caption("Table 1. Parameter estimates from the final linear mixed-effects model.") %>%
 	colformat_double(j = c("Estimate", "SE", "T Ratio", "p-value"), digits = 3) %>%
 	autofit()
-doc <- read_docx() %>%
+doc1 <- read_docx() %>%
 	body_add_flextable(model_table) %>%
 	body_add_par("")
 
-if (export) { print(doc, target = file.path("manuscript", "tables", "np_model_summary.docx")) }
+# Get anva table to see full term effects
+
+# Create ANOVA table from model
+anova_results <- anova(mod_final)
+
+# Convert to data frame
+anova_df <- as.data.frame(anova_results)
+anova_df$Term <- rownames(anova_df)
+anova_df <- anova_df[, c("Term", "Df", "Sum Sq", "Mean Sq", "F value", "Pr(>F)")]
+
+# Format and export
+anova_table <- flextable(anova_df) %>%
+	set_caption("Table 1. Analysis of variance for the linear model of net photosynthesis.") %>%
+	colformat_double(digits = 3) %>%
+	autofit()
+
+doc2 <- read_docx() %>%
+	body_add_flextable(anova_table) %>%
+	body_add_par("")
+
+# Export if desired
+if (export) {
+	print(doc2, target = file.path("manuscript", "tables", "np_anova_summary.docx"))
+	print(doc1, target = file.path("manuscript", "tables", "np_model_summary.docx"))
+}
 
 # Extract estimated marginal means
 emm_results <- emmeans(mod_final, ~ Species | Temp_cat * Light)
