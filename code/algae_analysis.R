@@ -18,7 +18,9 @@ library(flextable)
 library(officer)    
 library(broom)    
 library(multcomp)
-library(ggthemes)   
+library(ggthemes)  
+library(gridExtra)
+library(grid)
 library(tidyverse)  
 
 setwd("/Users/serpent/Documents/Projects/Giglio") # set WD 
@@ -38,8 +40,8 @@ dat <- algae %>%
 	dplyr::mutate(
 		Temp_cat = case_when(
 			Temperature == 21 ~ "control",
-			Temperature ==  26 ~ "warm",
-			Temperature == 30 ~ "hot",
+			Temperature ==  26 ~ "medium",
+			Temperature == 30 ~ "high",
 			TRUE ~ "NA")) %>%
 	
 	# set formats 
@@ -52,7 +54,7 @@ dat <- algae %>%
 		Algae = as.factor(Algae),
 		Species = as.factor(Species),
 		Light = factor(Light, levels = c("control", "medium", "high")),
-		Temp_cat = factor(Temp_cat, levels = c("control", "warm", "hot"))) %>%
+		Temp_cat = factor(Temp_cat, levels = c("control", "medium", "high"))) %>%
 	
 	# Also; transform photosynthesis and respiration units from µmol O2 cm² h⁻¹ to nmol O2 m² s⁻¹ 
 	
@@ -182,19 +184,33 @@ doc1 <- read_docx() %>%
 # Get anva table to see full term effects
 
 # Create ANOVA table from model
-anova_results <- anova(mod_final)
+
+# Set contrast options for Type III
+options(contrasts = c("contr.sum", "contr.poly"))
+
+# Refit model 
+mod_final <- update(mod_final)
+
+# Run Type III ANOVA
+anova_results <- Anova(mod_final, type = "III")
 
 # Convert to data frame
 anova_df <- as.data.frame(anova_results)
 anova_df$Term <- rownames(anova_df)
-anova_df <- anova_df[, c("Term", "Df", "Sum Sq", "Mean Sq", "F value", "Pr(>F)")]
 
-# Format and export
+# Reorder and clean columns (note: no Mean Sq in car::Anova output)
+anova_df <- anova_df[, c("Term", "Df", "Sum Sq", "F value", "Pr(>F)")]
+
+# Round p-values and optionally cap extreme small ones
+anova_df$`Pr(>F)` <- ifelse(anova_df$`Pr(>F)` < 1e-4, "< 0.0001", round(anova_df$`Pr(>F)`, 4))
+
+# Format as flextable
 anova_table <- flextable(anova_df) %>%
-	set_caption("Table 1. Analysis of variance for the linear model of net photosynthesis.") %>%
-	colformat_double(digits = 3) %>%
+	set_caption("Table 1. Type III analysis of variance (ANOVA) for the linear model of net photosynthesis.") %>%
+	colformat_double(j = c("Df", "Sum Sq", "F value"), digits = 3) %>%
 	autofit()
 
+# Export to Word
 doc2 <- read_docx() %>%
 	body_add_flextable(anova_table) %>%
 	body_add_par("")
@@ -210,8 +226,8 @@ emm_results <- emmeans(mod_final, ~ Species | Temp_cat * Light)
 
 # Plot estimated marginal means with a raw data overlay
 emm_df <- as.data.frame(emm_results)
-temperature_labels <- c("21 °C", "26 °C", "30 °C")
-names(temperature_labels) <- c("control", "warm", "hot")
+temperature_labels <- c("control", "medium", "high")
+names(temperature_labels) <- c("control", "medium", "high")
 
 # Extract letters for compact letter display
 cld_df <- cld(emm_results, Letters = letters, adjust = "sidak") %>%
@@ -224,15 +240,15 @@ cld_df <- cld(emm_results, Letters = letters, adjust = "sidak") %>%
 emm_plot <- ggplot(emm_df, aes(x = Species, y = emmean, fill = Species)) +
 	
 	# EMM bars + CI 
-	geom_bar(stat = "identity", position = "dodge", color = "black", alpha = .5, width = .8) +
+	geom_bar(stat = "identity", position = "dodge", color = "black", alpha = .55, width = .8) +
 	geom_errorbar(aes(ymin = lower.CL, ymax = upper.CL), width = 0.2) + 
 	
 	# Add raw data as a jitter overlay to add transparency 
 	geom_jitter(data = dat, aes(x = Species, y = netPhotosynthesis, color = Species),
 							position = position_jitter(width = 0.15), alpha = 0.4, size = 1.2, inherit.aes = FALSE) +
 	
-	scale_fill_manual(values = c("sienna", "olivedrab3", "red1")) +
-	scale_colour_manual(values = c("sienna", "olivedrab3", "red1")) +
+	scale_fill_manual(values = c("sienna", "aquamarine3", "firebrick2")) +
+	scale_colour_manual(values = c("sienna", "aquamarine3", "firebrick2")) +
 	
 	geom_text(data = cld_df, aes(x = Species, y = emmean * 0.05, label = label), 
 		vjust = 0, size = 4, fontface = "bold") +
@@ -247,15 +263,25 @@ emm_plot <- ggplot(emm_df, aes(x = Species, y = emmean, fill = Species)) +
 	
 	theme(
 		text = element_text(size = 12, family = "sans"),
-		strip.text = element_text(size = 12, face = "bold"),
+		strip.text = element_text(size = 12),
+		axis.text.x = element_text(face = "italic", size = 12),
 		legend.position = "none")
+
+# Titles for facet dimensions
+top_label <- textGrob("Temperature", gp = gpar(fontsize = 14, fontface = "bold"))
+side_label <- textGrob("Light", rot = 270, gp = gpar(fontsize = 14, fontface = "bold"))
+
+# Combine into a labeled plot
+emm_plot <- grid.arrange(
+  arrangeGrob(emm_plot, top = top_label, right = side_label)
+)
 
 if (export) {
 ggsave(filename = file.path("manuscript", "figures", "fig_2.png"),
 			 plot = emm_plot, 
-			 bg = "transparent",
-			 width = 290, 
-			 height = 200, 
+			 bg = "white",
+			 width = 300, 
+			 height = 220, 
 			 units = "mm", 
 			 dpi = 600)
 }
@@ -375,18 +401,27 @@ pr_plot <- emm_pr %>%
 	theme_few(base_size = 14, base_family = "sans") + 
 	theme(
 		text = element_text(size = 12),
-		strip.text = element_text(size = 12, face = "bold"), 
+		strip.text = element_text(size = 12), 
 		legend.position = "right",
-		axis.text.x = element_text(size = 12, angle = 30, hjust = 1),
-		axis.text.y = element_text(size = 12),
+		axis.text.x = element_text(size = 12),
+		axis.text.y = element_text(size = 12, face = "italic"),
 		plot.title = element_text(size = 14, face = "bold", hjust = 0.5))
+
+# Titles for facet dimensions
+top_label <- textGrob("Temperature", gp = gpar(fontsize = 14, fontface = "bold"))
+side_label <- textGrob("Light", gp = gpar(fontsize = 14, fontface = "bold"))
+
+pr_plot <- grid.arrange(
+  arrangeGrob(pr_plot, top = side_label, bottom = top_label)
+)
+
 
 if (export) {
 	ggsave(filename = file.path("manuscript", "figures", "fig_3.png"),
 				 plot = pr_plot, 
-				 bg = "transparent",
-				 width = 290, 
-				 height = 190, 
+				 bg = "white",
+				 width = 300, 
+				 height = 220, 
 				 units = "mm", 
 				 dpi = 600)
 }
@@ -405,19 +440,26 @@ summary_data <- dat %>%
 		grossPhotosynthesis_se = sd(grossPhotosynthesis) / sqrt(n()),
 		Respiration_se = sd(Respiration) / sqrt(n())
 	) %>%
-	ungroup()
+	ungroup() %>%
+  dplyr::mutate(
+    Temperature = case_when(
+      Temperature == 21 ~ "control",
+      Temperature ==  26 ~ "medium",
+      Temperature == 30 ~ "high",
+      TRUE ~ "NA"))
+
 
 plot_data <- summary_data %>%
 	pivot_longer(cols = c(netPhotosynthesis_mean, grossPhotosynthesis_mean, Respiration_mean),
 							 names_to = "Variable", values_to = "Value") %>%
-	mutate(Variable = factor(Variable, levels = c("netPhotosynthesis_mean", "grossPhotosynthesis_mean", "Respiration_mean")))
-
-temperature_labels <- c("21 °C", "26 °C", "30 °C")
-names(temperature_labels) <- c("21", "26", "30")
+	mutate(Variable = factor(Variable, levels = c("netPhotosynthesis_mean", "grossPhotosynthesis_mean", "Respiration_mean"))) 
 
 summary_data <- summary_data %>%
 	group_by(Temperature, Light, Species) %>%
 	mutate(max_value = max(c(netPhotosynthesis_mean, grossPhotosynthesis_mean, abs(Respiration_mean))) + 0.001)
+
+temperature_labels <- c("control", "medium", "high")
+names(temperature_labels) <- c("control", "medium", "high")
 
 summary_plot <- ggplot(plot_data, aes(x = Species, y = Value, fill = Variable)) +
 	
@@ -450,17 +492,27 @@ summary_plot <- ggplot(plot_data, aes(x = Species, y = Value, fill = Variable)) 
 	theme_bw() +
 	theme(
 		text = element_text(size = 12, family = "sans"),
-		strip.text = element_text(size = 14, face = "bold"),
-		legend.position = "top") +
+		strip.text = element_text(size = 14),
+		axis.text.x = element_text(size = 12, face = "italic"),
+		legend.position = "bottom") +
 	
 	ylim(-15.5, 37)
+
+# Titles for facet dimensions
+top_label <- textGrob("Temperature", gp = gpar(fontsize = 14, fontface = "bold"))
+side_label <- textGrob("Light", rot = 270, gp = gpar(fontsize = 14, fontface = "bold"))
+
+summary_plot <- grid.arrange(
+  arrangeGrob(summary_plot, top = top_label, right = side_label)
+)
+
 
 if (export) {
 	ggsave(filename = file.path("manuscript", "figures", "supplementary_1.png"),
 				 plot = summary_plot, 
 				 bg = "white",
-				 width = 290, 
-				 height = 230, 
+				 width = 300, 
+				 height = 240, 
 				 units = "mm", 
 				 dpi = 600)
 }
