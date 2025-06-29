@@ -1,6 +1,6 @@
 *.docx
 .gitattributes
 .Rhistory
-old
-manuscript
-submission
+old/
+manuscript/
+submission/
