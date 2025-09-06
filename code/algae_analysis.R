@@ -23,7 +23,7 @@ library(gridExtra)
 library(grid)
 library(tidyverse)  
 
-setwd("/Users/serpent/Documents/Projects/Giglio") # set WD 
+setwd("/Users/merlin/Documents/Projects/Giglio") # set WD 
 export = TRUE # export?  
 
 algae <- read_csv(file.path("code", "giglio_algae.csv"))
@@ -251,7 +251,7 @@ emm_plot <- ggplot(emm_df, aes(x = Species, y = emmean, fill = Species)) +
 	scale_colour_manual(values = c("sienna", "aquamarine3", "firebrick2")) +
 	
 	geom_text(data = cld_df, aes(x = Species, y = emmean * 0.05, label = label), 
-		vjust = 0, size = 4, fontface = "bold") +
+		vjust = 0, size = 3, fontface = "bold") +
 
 	facet_grid(Light ~ Temp_cat, scales = "free_y", labeller = labeller(Temp_cat = temperature_labels)) +
 	
@@ -262,28 +262,33 @@ emm_plot <- ggplot(emm_df, aes(x = Species, y = emmean, fill = Species)) +
 	theme_few() +
 	
 	theme(
-		text = element_text(size = 12, family = "sans"),
-		strip.text = element_text(size = 12),
-		axis.text.x = element_text(face = "italic", size = 12),
+		text = element_text(size = 10, family = "sans"),
+		strip.text = element_text(size = 10),
+		axis.text.x = element_text(face = "italic", size = 10),
 		legend.position = "none")
 
 # Titles for facet dimensions
-top_label <- textGrob("Temperature", gp = gpar(fontsize = 14, fontface = "bold"))
-side_label <- textGrob("Light", rot = 270, gp = gpar(fontsize = 14, fontface = "bold"))
+top_label <- textGrob("Temperature", gp = gpar(fontsize = 12, fontface = "bold"))
+side_label <- textGrob("Light", rot = 270, gp = gpar(fontsize = 12, fontface = "bold"))
 
 # Combine into a labeled plot
 emm_plot <- grid.arrange(
   arrangeGrob(emm_plot, top = top_label, right = side_label)
 )
 
+# print size 
+w_mm <- 200
+h_mm <- 140
+
 if (export) {
-ggsave(filename = file.path("manuscript", "figures", "fig_2.png"),
-			 plot = emm_plot, 
-			 bg = "white",
-			 width = 300, 
-			 height = 220, 
-			 units = "mm", 
-			 dpi = 600)
+  ggsave(
+    filename = file.path("manuscript", "figures", "fig_2.eps"),
+    plot = emm_plot,
+    device = cairo_ps,          # EPS via Cairo
+    width = w_mm, height = h_mm,
+    units = "mm",
+    fallback_resolution = 600   # for any raster elements if present
+  )
 }
 
 # Caption: Figure 2. Estimated marginal means (EMMs) of net photosynthesis across all combinations of temperature (21 °C, 26 °C, 30 °C) 
@@ -394,36 +399,36 @@ pr_plot <- emm_pr %>%
 		limits = c(0, max(emm_pr$response)), 
 		name = "P:R Ratio") +
 	scale_x_discrete(labels = temperature_labels) +
-	geom_text(aes(label = label), color = "white", fontface = "bold", size = 4.5) + 
+	geom_text(aes(label = label), color = "white", fontface = "bold", size = 3) + 
 	labs(
 		x = NULL,
 		y = NULL) +
-	theme_few(base_size = 14, base_family = "sans") + 
+	theme_few(base_size = 12, base_family = "sans") + 
 	theme(
-		text = element_text(size = 12),
-		strip.text = element_text(size = 12), 
+		text = element_text(size = 10),
+		strip.text = element_text(size = 10), 
 		legend.position = "right",
-		axis.text.x = element_text(size = 12),
-		axis.text.y = element_text(size = 12, face = "italic"),
-		plot.title = element_text(size = 14, face = "bold", hjust = 0.5))
+		axis.text.x = element_text(size = 10),
+		axis.text.y = element_text(size = 10, face = "italic"),
+		plot.title = element_text(size = 12, face = "bold", hjust = 0.5))
 
 # Titles for facet dimensions
-top_label <- textGrob("Temperature", gp = gpar(fontsize = 14, fontface = "bold"))
-side_label <- textGrob("Light", gp = gpar(fontsize = 14, fontface = "bold"))
+top_label <- textGrob("Temperature", gp = gpar(fontsize = 12, fontface = "bold"))
+side_label <- textGrob("Light", gp = gpar(fontsize = 12, fontface = "bold"))
 
 pr_plot <- grid.arrange(
   arrangeGrob(pr_plot, top = side_label, bottom = top_label)
 )
 
-
 if (export) {
-	ggsave(filename = file.path("manuscript", "figures", "fig_3.png"),
-				 plot = pr_plot, 
-				 bg = "white",
-				 width = 300, 
-				 height = 220, 
-				 units = "mm", 
-				 dpi = 600)
+  ggsave(
+    filename = file.path("manuscript", "figures", "fig_3.eps"),
+    plot = pr_plot,
+    device = cairo_ps,          # EPS via Cairo
+    width = w_mm, height = h_mm,
+    units = "mm",
+    fallback_resolution = 600 
+  )
 }
 
 ## =========================== Supplementary ===========================
@@ -481,7 +486,7 @@ summary_plot <- ggplot(plot_data, aes(x = Species, y = Value, fill = Variable)) 
 	geom_text(data = summary_data,
 						aes(x = Species, y = max_value + 2.5,
 							label = sprintf("%.2f (± %.2f)", PR_ratio_mean, PR_ratio_sd)),
-						position = position_dodge(width = 0.9), inherit.aes = FALSE, vjust = -0.5, size = 3) +
+						position = position_dodge(width = 0.9), inherit.aes = FALSE, vjust = -0.5, size = 2.5) +
 	
 	labs(x = NULL, y = "Oxygen Flux (nmol O₂ m⁻² s⁻¹)", fill = "Variable") +
 	
@@ -491,31 +496,34 @@ summary_plot <- ggplot(plot_data, aes(x = Species, y = Value, fill = Variable)) 
 	
 	theme_bw() +
 	theme(
-		text = element_text(size = 12, family = "sans"),
-		strip.text = element_text(size = 14),
-		axis.text.x = element_text(size = 12, face = "italic"),
+		text = element_text(size = 10, family = "sans"),
+		strip.text = element_text(size = 12),
+		axis.text.x = element_text(size = 10, face = "italic"),
 		legend.position = "bottom") +
 	
 	ylim(-15.5, 37)
 
 # Titles for facet dimensions
-top_label <- textGrob("Temperature", gp = gpar(fontsize = 14, fontface = "bold"))
-side_label <- textGrob("Light", rot = 270, gp = gpar(fontsize = 14, fontface = "bold"))
+top_label <- textGrob("Temperature", gp = gpar(fontsize = 12, fontface = "bold"))
+side_label <- textGrob("Light", rot = 270, gp = gpar(fontsize = 12, fontface = "bold"))
 
 summary_plot <- grid.arrange(
   arrangeGrob(summary_plot, top = top_label, right = side_label)
 )
 
+# print size 
+w_mm <- 200
+h_mm <- 160
 
 if (export) {
-	ggsave(filename = file.path("manuscript", "figures", "supplementary_1.png"),
-				 plot = summary_plot, 
-				 bg = "white",
-				 width = 300, 
-				 height = 240, 
-				 units = "mm", 
-				 dpi = 600)
+  ggsave(
+    filename = file.path("manuscript", "figures", "supplementary_1.eps"),
+    plot = summary_plot,
+    device = cairo_ps,          # EPS via Cairo
+    width = w_mm, height = h_mm,
+    units = "mm",
+    fallback_resolution = 600   # for any raster elements if present
+  )
 }
 
 ## ========== END ==========
-
