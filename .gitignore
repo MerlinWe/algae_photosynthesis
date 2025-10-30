@@ -1,6 +1,24 @@
-*.docx
-.gitattributes
+# R project defaults
+.Rproj.user
 .Rhistory
+.RData
+.Ruserdata
+
+# OS files
+.DS_Store
+
+# Manuscript materials (ignored)
+manuscript/drafts/
+manuscript/figures/
 old/
-manuscript/
+revision/
 submission/
+
+# Large data or backup files
+*.csv
+*.docx
+*.pdf
+*.xlsx
+*.zip
+*.eps
+
