@@ -23,7 +23,6 @@ library(gridExtra)
 library(grid)
 library(tidyverse)  
 
-setwd("/Users/merlin/Documents/Projects/Giglio") # set WD 
 export = TRUE # export?  
 
 algae <- read_csv(file.path("code", "giglio_algae.csv"))
