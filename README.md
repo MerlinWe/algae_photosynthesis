@@ -4,7 +4,7 @@
 
 **Citation**
 
-Hesse, L., Weiss, M., Mezger, S. D., El-Khaled, Y. C., Müller, B., Kler Lago, A., Schwarzmeier, M., & Wild, C. (2025). Different photosynthetic responses to heat and light favour green and red over brown macroalgae in the Mediterranean Sea. Scientific Reports. https://doi.org/10.1038/s41598-025-28235-8
+Hesse, L., Weiss, M., Mezger, S. D., El-Khaled, Y. C., Müller, B., Kler Lago, A., Schwarzmeier, M., & Wild, C. (2025). Different photosynthetic responses to heat and light favour green and red over brown macroalgae in the Mediterranean Sea. Scientific Reports 15, 42556. https://doi.org/10.1038/s41598-025-28235-8
 
 **Abstract**
 
